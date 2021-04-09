@@ -93,4 +93,20 @@ class BookKeeperTest {
         Assert.assertTrue(invoice.getNet().equals(Money.ZERO));
     }
 
+    @Test
+    void calculateTaxCallsTest(){
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        when(invoiceFactory.create(any())).thenReturn( new Invoice(Id.generate(),null) );
+        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        Invoice firstInvoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        Invoice secondInvoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        Mockito.verify(taxPolicy, times(10)).calculateTax(any(), any());
+
+    }
+
 }
