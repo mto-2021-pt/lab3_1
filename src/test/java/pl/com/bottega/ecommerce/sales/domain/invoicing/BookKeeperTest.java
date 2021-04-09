@@ -173,5 +173,51 @@ class BookKeeperTest {
 
     }
 
+    @Test
+    void invoiceWithTwoPositionThreeTimesCalculateTax()
+    {
+        ClientData client = new ClientData(Id.generate(),"dominik");
+        InvoiceRequest request=new InvoiceRequest(client);
+
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        when(taxPolicy.calculateTax(ProductType.STANDARD,new Money(5))).thenReturn(new Tax(new Money(0.05),"5%"));
+        when(taxPolicy.calculateTax(ProductType.FOOD,new Money(15))).thenReturn(new Tax(new Money(0.03),"3%"));
+        when(taxPolicy.calculateTax(ProductType.DRUG,new Money(55))).thenReturn(new Tax(new Money(0.55),"55%"));
+
+        ProductData productData=mock(ProductData.class);
+        when(productData.getType()).thenReturn(ProductType.STANDARD);
+
+        ProductData productData2=mock(ProductData.class);
+        when(productData2.getType()).thenReturn(ProductType.FOOD);
+
+        ProductData productData3=mock(ProductData.class);
+        when(productData3.getType()).thenReturn(ProductType.DRUG);
+
+        RequestItem item=new RequestItem(productData,1,new Money(5));
+
+        request.add(item);
+
+        RequestItem item2=new RequestItem(productData2,6,new Money(15));
+
+        request.add(item2);
+
+        RequestItem item3=new RequestItem(productData3,6,new Money(55));
+
+        request.add(item3);
+
+        Invoice invoice = new Invoice(Id.generate(),client);
+        when(factory.create(client)).thenReturn(invoice);
+
+        bookKeeper.issuance(request,taxPolicy);
+
+        Mockito.verify(taxPolicy,times(1)).calculateTax(ProductType.STANDARD,new Money(5));
+        Mockito.verify(taxPolicy,times(1)).calculateTax(ProductType.FOOD,new Money(15));
+        Mockito.verify(taxPolicy,times(1)).calculateTax(ProductType.DRUG,new Money(55));
+
+    }
+
+
+
+
 
 }
