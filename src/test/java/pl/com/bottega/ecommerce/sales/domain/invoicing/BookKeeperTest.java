@@ -102,7 +102,6 @@ class BookKeeperTest {
 
         Mockito.verify(taxPolicy,times(2)).calculateTax(ProductType.STANDARD,new Money(5));
 
-
     }
 
     @Test
@@ -154,6 +153,25 @@ class BookKeeperTest {
     }
 
 
+    @Test
+    void invoiceWithZeroPositionZeroTimesCalculateTax()
+    {
+        ClientData client = new ClientData(Id.generate(),"dominik");
+        InvoiceRequest request=new InvoiceRequest(client);
+
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        //when(taxPolicy.calculateTax(ProductType.STANDARD,new Money(5))).thenReturn(new Tax(new Money(0.05),"5%"));
+
+
+        Invoice invoice = new Invoice(Id.generate(),client);
+        when(factory.create(client)).thenReturn(invoice);
+
+        bookKeeper.issuance(request,taxPolicy);
+
+        Mockito.verify(taxPolicy,times(0)).calculateTax(ProductType.STANDARD,new Money(5));
+
+
+    }
 
 
 }
