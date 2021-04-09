@@ -15,6 +15,8 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 import java.util.Date;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BookKeeperTest {
@@ -38,7 +40,7 @@ class BookKeeperTest {
         money = Money.ZERO;
         ProductData productData = new ProductData(Id.generate(),money,"name", ProductType.STANDARD,new Date());
         requestItem = new RequestItem(productData,0,money);
-        
+
         invoiceFactory = Mockito.mock(InvoiceFactory.class);
         tax = new Tax(money, "text");
         taxPolicy = Mockito.mock(TaxPolicy.class);
@@ -51,13 +53,24 @@ class BookKeeperTest {
 
     @Test
     void oneItemInvoiceTest() {
-        Mockito.when(taxPolicy.calculateTax(any(),any())).thenReturn(tax);
-        Mockito.when(invoiceFactory.create(any())).thenReturn( new Invoice(Id.generate(),null) );
+        when(taxPolicy.calculateTax(any(),any())).thenReturn(tax);
+        when(invoiceFactory.create(any())).thenReturn( new Invoice(Id.generate(),null) );
         BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
         invoiceRequest.add(requestItem);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
         Assert.assertTrue(invoice.getItems().size() == 1);
+    }
+
+    @Test
+    void calculateCalledTwiceTest(){
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        when(invoiceFactory.create(any())).thenReturn( new Invoice(Id.generate(),null) );
+        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        Mockito.verify(taxPolicy,times(2)).calculateTax(any(),any());
     }
 
 }
