@@ -32,8 +32,11 @@ public class ProductData {
 		
 	private ProductType type;
 
-	
-	ProductData(Id productId, Money price, String name, ProductType type, 
+	public static ProductData create(Id productId, Money price, String name, ProductType type, Date snapshotDate){
+		return new ProductData(productId, price, name, type, snapshotDate);
+	}
+
+	ProductData(Id productId, Money price, String name, ProductType type,
 			Date snapshotDate) {
 		this.productId = productId;
 		this.price = price;
