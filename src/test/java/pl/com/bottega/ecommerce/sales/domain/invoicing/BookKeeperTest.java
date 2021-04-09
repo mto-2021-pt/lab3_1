@@ -79,7 +79,6 @@ class BookKeeperTest {
 
         TaxPolicy taxPolicy = mock(TaxPolicy.class);
         when(taxPolicy.calculateTax(ProductType.STANDARD,new Money(5))).thenReturn(new Tax(new Money(0.05),"5%"));
-        //when(taxPolicy.calculateTax(ProductType.DRUG,new Money(22))).thenReturn(new Tax(new Money(0.56),"50%"));
 
 
         ProductData productData=mock(ProductData.class);
@@ -119,6 +118,39 @@ class BookKeeperTest {
 
 
         assertEquals(invoice.getItems().size(),0);
+    }
+
+    @Test
+    void invoiceShouldReturnTwoPosition()
+    {
+        ClientData client = new ClientData(Id.generate(),"dominik");
+        InvoiceRequest request=new InvoiceRequest(client);
+
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        when(taxPolicy.calculateTax(ProductType.STANDARD,new Money(5))).thenReturn(new Tax(new Money(0.05),"5%"));
+        when(taxPolicy.calculateTax(ProductType.FOOD,new Money(21))).thenReturn(new Tax(new Money(0.03),"3%"));
+
+        ProductData productData=mock(ProductData.class);
+        when(productData.getType()).thenReturn(ProductType.STANDARD);
+
+        ProductData productData2=mock(ProductData.class);
+        when(productData2.getType()).thenReturn(ProductType.FOOD);
+
+        RequestItem item=new RequestItem(productData,1,new Money(5));
+
+        request.add(item);
+
+        RequestItem item2=new RequestItem(productData2,1,new Money(21));
+
+        request.add(item2);
+
+
+        Invoice invoice = new Invoice(Id.generate(),client);
+        when(factory.create(client)).thenReturn(invoice);
+
+        bookKeeper.issuance(request,taxPolicy);
+
+        assertEquals(invoice.getItems().size(),2);
     }
 
 
