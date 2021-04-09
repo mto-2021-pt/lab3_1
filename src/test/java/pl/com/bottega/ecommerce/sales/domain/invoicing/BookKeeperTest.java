@@ -2,6 +2,7 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -34,7 +35,6 @@ class BookKeeperTest {
         bookKeeper = new BookKeeper(factory);
         clientData = new ClientData(Id.generate(), "name");
         invoiceRequest = new InvoiceRequest(clientData);
-
     }
 
 
@@ -80,9 +80,28 @@ class BookKeeperTest {
     }
 
     @Test
-    public void chceckIfEmptyRequestDoesntInvokeCalculateTaxMethod(){
+    public void checkIfEmptyRequestDoesntInvokeCalculateTaxMethod(){
         verify(taxPolicy, times(0)).calculateTax(ProductType.STANDARD, Money.ZERO);
     }
 
+    @Test()
+    public void checkIfMethodThrowsExceptionWhenRequestIsNull() {
+        assertThrows(NullPointerException.class, () -> bookKeeper.issuance(null, taxPolicy));
+    }
 
+    @Test
+    public void checkIfProductsOnInvoiceAreValid() {
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
+        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
+
+        ProductBuilder productBuilder = new ProductBuilder();
+        RequestItemBuilder requestItemBuilder = new RequestItemBuilder();
+        Money money = new Money(10);
+        Product product = productBuilder.withPrice(money).withName("Fajny produkt").withProductType(ProductType.STANDARD).build();
+        RequestItem requestItem = requestItemBuilder.withProductData(product.generateSnapshot()).withTotalCost(money).build();
+        invoiceRequest.add(requestItem);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertEquals(product.generateSnapshot(), invoice.getItems().get(0).getProduct());
+    }
 }
