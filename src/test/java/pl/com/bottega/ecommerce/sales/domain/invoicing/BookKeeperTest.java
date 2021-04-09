@@ -34,13 +34,14 @@ class BookKeeperTest {
         bookKeeper = new BookKeeper(factory);
         clientData = new ClientData(Id.generate(), "name");
         invoiceRequest = new InvoiceRequest(clientData);
-        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
-        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
+
     }
 
 
     @Test
     public void checkIfSinglePositionRequestReturnSinglePositionInvoice() {
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
+        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
 
         ProductBuilder productBuilder = new ProductBuilder();
         RequestItemBuilder requestItemBuilder = new RequestItemBuilder();
@@ -54,7 +55,10 @@ class BookKeeperTest {
     }
 
     @Test
-    public void TwoItemInvoiceRequest_expectedTwoCallsOfTaxMethod(){
+    public void checkIfDoublePositionRequestInvokeCalculateTaxTwice(){
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
+        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
+
         ProductBuilder productBuilder = new ProductBuilder();
         RequestItemBuilder requestItemBuilder = new RequestItemBuilder();
         Money money = new Money(10);
@@ -68,4 +72,17 @@ class BookKeeperTest {
         bookKeeper.issuance(invoiceRequest, taxPolicy);
         verify(taxPolicy, times(2)).calculateTax(ProductType.STANDARD, money);
     }
+
+    @Test
+    public void checkIfEmptyRequestRetuensEmptyInovice(){
+        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
+        assertEquals(0, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
+    }
+
+    @Test
+    public void chceckIfEmptyRequestDoesntInvokeCalculateTaxMethod(){
+        verify(taxPolicy, times(0)).calculateTax(ProductType.STANDARD, Money.ZERO);
+    }
+
+
 }
