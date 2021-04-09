@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductBuilder;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
@@ -32,8 +33,8 @@ class BookKeeperTest {
         bookKeeper = new BookKeeper(factory);
         clientData = new ClientData(Id.generate(), "irrelevant name");
         invoiceRequest = new InvoiceRequest(clientData);
-        product = new Product(Id.generate(), Money.ZERO, "irrelevant name", ProductType.STANDARD);
-        requestItem = new RequestItem(product.generateSnapshot(), 1, Money.ZERO);
+        product = new ProductBuilder().build();
+        requestItem = new RequestItemBuilder().build();
     }
 
     @Test
