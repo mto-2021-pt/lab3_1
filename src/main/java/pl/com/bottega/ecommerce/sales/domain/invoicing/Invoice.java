@@ -75,5 +75,4 @@ public class Invoice  {
 	public Money getGros() {
 		return gros;
 	}
-
 }
