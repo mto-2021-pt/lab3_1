@@ -56,4 +56,25 @@ class BookKeeperTest {
         Invoice invoice = keeper.issuance(request, tax);
         assertEquals(1, invoice.getItems().size());
     }
+    
+    @Test
+    void invoiceRequestWithTwoItems_methodCallVerification() {
+        ProductData potato = new ProductDataBuilder()
+                .withName("ziemniak")
+                .withPrice(new Money(2.5))
+                .build();
+
+        InvoiceRequest request = new InvoiceRequestBuilder()
+                .addItem(potato, 1, new Money(2.5))
+                .addItem(potato, 2, new Money(5))
+                .build();
+
+        Invoice invoice_to_get = new Invoice(Id.generate(), new ClientData(Id.generate(), "klien"));
+        Mockito.when(factory.create(notNull())).thenReturn(invoice_to_get);
+
+        Mockito.when(tax.calculateTax(notNull(), notNull())).thenReturn(new Tax(new Money(0.0), ""));
+
+        Invoice invoice = keeper.issuance(request, tax);
+        Mockito.verify(tax, times(2)).calculateTax(notNull(), notNull());
+    }
 }
