@@ -37,6 +37,7 @@ class BookKeeperTest {
         invoiceRequest = new InvoiceRequest(clientData);
     }
 
+    //Testy stanu
 
     @Test
     public void checkIfSinglePositionRequestReturnSinglePositionInvoice() {
@@ -53,6 +54,30 @@ class BookKeeperTest {
         int result = bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size();
         assertEquals(1,result);
     }
+
+    @Test
+    public void checkIfEmptyRequestRetuensEmptyInovice(){
+        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
+        assertEquals(0, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
+    }
+
+    @Test
+    public void checkIfProductsOnInvoiceAreValid() {
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
+        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
+
+        ProductBuilder productBuilder = new ProductBuilder();
+        RequestItemBuilder requestItemBuilder = new RequestItemBuilder();
+        Money money = new Money(10);
+        Product product = productBuilder.withPrice(money).withName("Fajny produkt").withProductType(ProductType.STANDARD).build();
+        RequestItem requestItem = requestItemBuilder.withProductData(product.generateSnapshot()).withTotalCost(money).build();
+        invoiceRequest.add(requestItem);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertEquals(product.generateSnapshot(), invoice.getItems().get(0).getProduct());
+    }
+
+    // Testy zachowania
 
     @Test
     public void checkIfDoublePositionRequestInvokeCalculateTaxTwice(){
@@ -74,12 +99,6 @@ class BookKeeperTest {
     }
 
     @Test
-    public void checkIfEmptyRequestRetuensEmptyInovice(){
-        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
-        assertEquals(0, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
-    }
-
-    @Test
     public void checkIfEmptyRequestDoesntInvokeCalculateTaxMethod(){
         verify(taxPolicy, times(0)).calculateTax(ProductType.STANDARD, Money.ZERO);
     }
@@ -89,19 +108,4 @@ class BookKeeperTest {
         assertThrows(NullPointerException.class, () -> bookKeeper.issuance(null, taxPolicy));
     }
 
-    @Test
-    public void checkIfProductsOnInvoiceAreValid() {
-        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
-        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
-
-        ProductBuilder productBuilder = new ProductBuilder();
-        RequestItemBuilder requestItemBuilder = new RequestItemBuilder();
-        Money money = new Money(10);
-        Product product = productBuilder.withPrice(money).withName("Fajny produkt").withProductType(ProductType.STANDARD).build();
-        RequestItem requestItem = requestItemBuilder.withProductData(product.generateSnapshot()).withTotalCost(money).build();
-        invoiceRequest.add(requestItem);
-
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
-        assertEquals(product.generateSnapshot(), invoice.getItems().get(0).getProduct());
-    }
 }
