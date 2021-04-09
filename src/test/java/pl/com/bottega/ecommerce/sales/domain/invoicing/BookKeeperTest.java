@@ -70,6 +70,7 @@ class BookKeeperTest {
         assertEquals(invoice.getItems().size(),1);
     }
 
+
     @Test
     void invoiceWithTwoPositionTwoTimesCalculateTax()
     {
@@ -104,6 +105,23 @@ class BookKeeperTest {
 
 
     }
+
+    @Test
+    void invoiceShouldReturnZeroPosition()
+    {
+        ClientData client = new ClientData(Id.generate(),"dominik");
+        InvoiceRequest request=new InvoiceRequest(client);
+
+        Invoice invoice = new Invoice(Id.generate(),client);
+        when(factory.create(client)).thenReturn(invoice);
+
+        bookKeeper.issuance(request,taxPolicy);
+
+
+        assertEquals(invoice.getItems().size(),0);
+    }
+
+
 
 
 }
