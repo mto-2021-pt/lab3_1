@@ -83,4 +83,14 @@ class BookKeeperTest {
         Assert.assertTrue(invoice.getItems().size() == 0);
     }
 
+    @Test
+    void noItemsInvoiceValueTest(){
+        Mockito.lenient().when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        when(invoiceFactory.create(any())).thenReturn( new Invoice(Id.generate(),null) );
+        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+
+        Assert.assertTrue(invoice.getNet().equals(Money.ZERO));
+    }
+
 }
