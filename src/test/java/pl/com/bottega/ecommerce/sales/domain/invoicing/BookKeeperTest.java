@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
@@ -30,7 +31,6 @@ class BookKeeperTest {
     private ProductData productData;
     private Tax tax;
     private BookKeeper bookKeeper;
-
 
     @BeforeEach
     void setUp() throws Exception {
@@ -66,7 +66,58 @@ class BookKeeperTest {
         invoiceRequest.add(requestItem);
         invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
         
-        Mockito.verify(taxPolicy,times(2)).calculateTax(any(),any());
+        verify(taxPolicy,times(2)).calculateTax(any(),any());
+    }
+    
+    @Test
+    void test_case_noItems_1(){
+        when(invoiceFactory.create(any())).thenReturn( new Invoice(Id.generate(),null) );
+        lenient().when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        
+        bookKeeper = new BookKeeper(invoiceFactory);
+        invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+
+        Assertions.assertTrue(invoice.getNet().equals(Money.ZERO));
+    }
+    
+    @Test
+    void test_case_noItems_2(){
+        when(invoiceFactory.create(any())).thenReturn( new Invoice(Id.generate(),null) );
+        lenient().when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        
+        bookKeeper = new BookKeeper(invoiceFactory);
+        invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+
+        Assertions.assertTrue(invoice.getItems().isEmpty());
+    }
+    
+    @Test
+    void test_case_noCalculateTax(){
+        when(invoiceFactory.create(any())).thenReturn( new Invoice(Id.generate(),null) );
+        lenient().when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        
+        bookKeeper = new BookKeeper(invoiceFactory);
+        invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        
+        verify(taxPolicy,times(0)).calculateTax(any(),any());
     }
 
+    @Test
+    void test_case_calculateTax(){
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        when(invoiceFactory.create(any())).thenReturn( new Invoice(Id.generate(),null) );
+        
+        bookKeeper = new BookKeeper(invoiceFactory);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        Invoice invoice1 = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        Invoice invoice2 = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        
+        verify(taxPolicy, times(14)).calculateTax(any(), any());
+    }
 }
