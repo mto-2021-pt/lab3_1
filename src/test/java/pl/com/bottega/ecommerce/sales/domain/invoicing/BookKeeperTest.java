@@ -109,4 +109,14 @@ class BookKeeperTest {
 
     }
 
+    @Test
+    void noCalculateTaxTest(){
+        Mockito.lenient().when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        when(invoiceFactory.create(any())).thenReturn( new Invoice(Id.generate(),null) );
+        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        Mockito.verify(taxPolicy,times(0)).calculateTax(any(),any());
+
+    }
+
 }
