@@ -3,7 +3,7 @@ package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 import org.junit.jupiter.api.BeforeEach;
@@ -51,5 +51,21 @@ class BookKeeperTest {
 
         int result = bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size();
         assertEquals(1,result);
+    }
+
+    @Test
+    public void TwoItemInvoiceRequest_expectedTwoCallsOfTaxMethod(){
+        ProductBuilder productBuilder = new ProductBuilder();
+        RequestItemBuilder requestItemBuilder = new RequestItemBuilder();
+        Money money = new Money(10);
+        Product product = productBuilder.withPrice(money).withName("produkt").withProductType(ProductType.STANDARD).build();
+        RequestItem requestItem = requestItemBuilder.withProductData(product.generateSnapshot()).withTotalCost(money).build();
+
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+
+
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy, times(2)).calculateTax(ProductType.STANDARD, money);
     }
 }
