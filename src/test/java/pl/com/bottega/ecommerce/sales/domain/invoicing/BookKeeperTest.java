@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
@@ -68,5 +69,41 @@ class BookKeeperTest {
 
         assertEquals(invoice.getItems().size(),1);
     }
+
+    @Test
+    void invoiceWithTwoPositionTwoTimesCalculateTax()
+    {
+        ClientData client = new ClientData(Id.generate(),"dominik");
+        InvoiceRequest request=new InvoiceRequest(client);
+
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        when(taxPolicy.calculateTax(ProductType.STANDARD,new Money(5))).thenReturn(new Tax(new Money(0.05),"5%"));
+        //when(taxPolicy.calculateTax(ProductType.DRUG,new Money(22))).thenReturn(new Tax(new Money(0.56),"50%"));
+
+
+        ProductData productData=mock(ProductData.class);
+        when(productData.getType()).thenReturn(ProductType.STANDARD);
+
+        ProductData productData2=mock(ProductData.class);
+        when(productData2.getType()).thenReturn(ProductType.STANDARD);
+
+        RequestItem item=new RequestItem(productData,1,new Money(5));
+
+        request.add(item);
+
+        RequestItem item2=new RequestItem(productData2,6,new Money(5));
+
+        request.add(item2);
+
+        Invoice invoice = new Invoice(Id.generate(),client);
+        when(factory.create(client)).thenReturn(invoice);
+
+        bookKeeper.issuance(request,taxPolicy);
+
+        Mockito.verify(taxPolicy,times(2)).calculateTax(ProductType.STANDARD,new Money(5));
+
+
+    }
+
 
 }
