@@ -1,6 +1,6 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -32,24 +32,51 @@ class BookKeeperTest {
         bookKeeper = new BookKeeper(factory);
         clientData = new ClientData(Id.generate(), "irrelevant name");
         invoiceRequest = new InvoiceRequest(clientData);
-        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
-        when(taxPolicy.calculateTax(ProductType.STANDARD, Money.ZERO)).thenReturn(new Tax(Money.ZERO, "irrelevant tax"));
         product = new Product(Id.generate(), Money.ZERO, "irrelevant name", ProductType.STANDARD);
         requestItem = new RequestItem(product.generateSnapshot(), 1, Money.ZERO);
     }
 
     @Test
     void OneItemInvoiceRequest_expectedOneItemInvoice() {
+        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
+        when(taxPolicy.calculateTax(ProductType.STANDARD, Money.ZERO)).thenReturn(new Tax(Money.ZERO, "irrelevant tax"));
         invoiceRequest.add(requestItem);
         assertEquals(1, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
     }
 
     @Test
     public void TwoItemInvoiceRequest_expectedTwoCallsOfTaxMethod(){
+        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
+        when(taxPolicy.calculateTax(ProductType.STANDARD, Money.ZERO)).thenReturn(new Tax(Money.ZERO, "irrelevant tax"));
         invoiceRequest.add(requestItem);
         invoiceRequest.add(requestItem);
         bookKeeper.issuance(invoiceRequest, taxPolicy);
         verify(taxPolicy, times(2)).calculateTax(ProductType.STANDARD, Money.ZERO);
     }
 
+    @Test
+    public void NoItemInvoiceRequest_expectedNoItemInvoice(){
+        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
+        assertEquals(0, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
+    }
+
+    @Test
+    public void ThreeItemsInvoiceRequest_expectedThreeItemsInvoice(){
+        when(factory.create(clientData)).thenReturn(new Invoice(Id.generate(), clientData));
+        when(taxPolicy.calculateTax(ProductType.STANDARD, Money.ZERO)).thenReturn(new Tax(Money.ZERO, "irrelevant tax"));
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        assertEquals(3, bookKeeper.issuance(invoiceRequest,taxPolicy).getItems().size());
+    }
+
+    @Test
+    public void NoItemInvoiceRequest_expectedZeroCallsOfTaxMethod(){
+        verify(taxPolicy, times(0)).calculateTax(ProductType.STANDARD, Money.ZERO);
+    }
+
+    @Test
+    public void NullInvoiceRequest_expectedNullPointerException(){
+        assertThrows(NullPointerException.class, () -> bookKeeper.issuance(null, taxPolicy));
+    }
 }
