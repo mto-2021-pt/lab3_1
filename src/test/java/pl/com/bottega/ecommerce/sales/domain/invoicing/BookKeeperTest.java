@@ -69,4 +69,16 @@ class BookKeeperTest {
 
     }
 
+    @Test
+    void calculateTaxShouldBeCalledEightTimes() {
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        for (int i = 0; i < 8; ++i)
+            invoiceRequest.add(requestItem);
+        Invoice invoice = new Invoice(Id.generate(), clientData);
+        when(invoiceFactory.create(any())).thenReturn(invoice);
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy, times(8)).calculateTax(any(), any());
+    }
+
+
 }
