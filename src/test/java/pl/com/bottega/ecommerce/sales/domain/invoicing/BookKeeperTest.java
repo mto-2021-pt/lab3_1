@@ -39,9 +39,8 @@ class BookKeeperTest {
         bookKeeper = new BookKeeper(invoiceFactory);
         clientData = new ClientData(Id.generate(), "client");
         invoiceRequest = new InvoiceRequest(clientData);
-        Money money = new Money(0.25);
-        tax = new Tax(money, "25%");
-        requestItem = new RequestItem(productData, 4, money);
+        tax = new TaxBuilder().withMoney(Money.ZERO).withDescription("example").build();
+        requestItem = new RequestItemBuilder().withProductData(productData).withQuantity(1).withMoney(Money.ZERO).build();
 
     }
 
