@@ -80,5 +80,11 @@ class BookKeeperTest {
         verify(taxPolicy, times(8)).calculateTax(any(), any());
     }
 
+    @Test
+    void calculateTaxShouldBeCalledZeroTimes()
+    {
+        verify(taxPolicy, never()).calculateTax(any(),any());
+    }
+
 
 }
