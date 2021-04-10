@@ -1,7 +1,6 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import org.hamcrest.core.Is;
@@ -92,6 +91,16 @@ class BookKeeperTest {
         when(invoiceFactory.create(any())).thenReturn(invoice);
         bookKeeper.issuance(invoiceRequest, taxPolicy);
         assertThat(invoice.getItems().size(), Is.is((0)));
+    }
+    @Test
+    void invoiceRequestShouldReturnTenPositions() {
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        for (int i = 0; i < 10; ++i)
+            invoiceRequest.add(requestItem);
+        Invoice invoice = new Invoice(Id.generate(), clientData);
+        when(invoiceFactory.create(any())).thenReturn(invoice);
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertThat(invoice.getItems().size(), Is.is((10)));
     }
 
 
