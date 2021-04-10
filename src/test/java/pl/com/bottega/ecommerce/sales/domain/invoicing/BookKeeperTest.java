@@ -2,6 +2,7 @@ package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.*;
+
 import org.hamcrest.core.Is;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,8 +40,8 @@ class BookKeeperTest {
         clientData = new ClientData(Id.generate(), "client");
         invoiceRequest = new InvoiceRequest(clientData);
         Money money = new Money(0.25);
-        tax=new Tax(money,"25%");
-        requestItem=new RequestItem(productData,4,money);
+        tax = new Tax(money, "25%");
+        requestItem = new RequestItem(productData, 4, money);
 
     }
 
@@ -53,6 +54,18 @@ class BookKeeperTest {
         when(invoiceFactory.create(any())).thenReturn(invoice);
         bookKeeper.issuance(invoiceRequest, taxPolicy);
         assertThat(invoice.getItems().size(), Is.is((1)));
+
+    }
+
+    @Test
+    void calculateTaxShouldBeCalledTwice() {
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        Invoice invoice = new Invoice(Id.generate(), clientData);
+        when(invoiceFactory.create(any())).thenReturn(invoice);
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy, times(2)).calculateTax(any(), any());
 
     }
 
