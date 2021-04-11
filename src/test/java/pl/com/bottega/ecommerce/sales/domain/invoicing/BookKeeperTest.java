@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -100,6 +101,20 @@ class BookKeeperTest {
         Mockito.lenient().when(factory.create(clientData)).thenReturn(invoice);
 
         bookKeeper.issuance(invoiceRequest,taxPolicy);
-        Assert.assertTrue(invoice.getItems().size() == 0);
+        Assertions.assertTrue(invoice.getItems().size() == 0);
+    }
+
+    @Test
+    void InvoiceWithNoItemsValueTest() {
+        Mockito.lenient().when(taxPolicy.calculateTax(any(), any())).thenReturn(new Tax(Money.ZERO,"desc"));
+
+        ProductData productData=mock(ProductData.class);
+        Mockito.lenient().when(productData.getType()).thenReturn(ProductType.STANDARD);
+
+        Invoice invoice = new Invoice(Id.generate(),clientData);
+        Mockito.lenient().when(factory.create(clientData)).thenReturn(invoice);
+
+        bookKeeper.issuance(invoiceRequest,taxPolicy);
+        Assertions.assertTrue(invoice.getNet().equals(Money.ZERO));
     }
 }
