@@ -53,5 +53,20 @@ class BookKeeperTest {
         assertEquals(invoice.getItems().size(),1);
     }
 
+    @Test
+    void InvoiceWithTwoSameItemsExecutionTimesTest() {
+        when(taxPolicy.calculateTax(ProductType.STANDARD, Money.ZERO)).thenReturn(new Tax(Money.ZERO,"desc"));
 
+        ProductData productData=mock(ProductData.class);
+        when(productData.getType()).thenReturn(ProductType.STANDARD);
+        RequestItem requestItem = new RequestItem(productData,1,Money.ZERO);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+
+        Invoice invoice = new Invoice(Id.generate(),clientData);
+        when(factory.create(clientData)).thenReturn(invoice);
+
+        bookKeeper.issuance(invoiceRequest,taxPolicy);
+        Mockito.verify(taxPolicy,times(2)).calculateTax(ProductType.STANDARD, Money.ZERO);
+    }
 }
