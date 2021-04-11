@@ -69,4 +69,23 @@ class BookKeeperTest {
         bookKeeper.issuance(invoiceRequest,taxPolicy);
         Mockito.verify(taxPolicy,times(2)).calculateTax(ProductType.STANDARD, Money.ZERO);
     }
+
+    @Test
+    void InvoiceWithTwoItemsTest() {
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(new Tax(Money.ZERO,"desc"));
+
+        ProductData productData=mock(ProductData.class);
+        when(productData.getType()).thenReturn(ProductType.STANDARD);
+        RequestItem first = new RequestItem(productData,1,Money.ZERO);
+        invoiceRequest.add(first);
+        RequestItem sec = new RequestItem(productData,1, new Money(1));
+        invoiceRequest.add(sec);
+
+        Invoice invoice = new Invoice(Id.generate(),clientData);
+        when(factory.create(clientData)).thenReturn(invoice);
+
+        bookKeeper.issuance(invoiceRequest,taxPolicy);
+        Mockito.verify(taxPolicy,times(1)).calculateTax(ProductType.STANDARD, new Money(0));
+        Mockito.verify(taxPolicy,times(1)).calculateTax(ProductType.STANDARD, new Money(1));
+    }
 }
