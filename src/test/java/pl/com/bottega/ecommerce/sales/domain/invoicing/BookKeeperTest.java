@@ -86,5 +86,11 @@ class BookKeeperTest {
     	assertEquals(invoice.getNet(), Money.ZERO);
     }
     
+    @Test
+    void calculateTaxShouldNotBeCalled() {
+    	when(factory.create(any())).thenReturn(new Invoice(Id.generate(), null));
 
+    	Invoice invoice = keeper.issuance(request, taxPolicy);
+    	verify(taxPolicy, times(0)).calculateTax(any(), any());
+    }
 }
