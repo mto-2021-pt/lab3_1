@@ -93,4 +93,17 @@ class BookKeeperTest {
     	Invoice invoice = keeper.issuance(request, taxPolicy);
     	verify(taxPolicy, times(0)).calculateTax(any(), any());
     }
+    
+    @Test
+    void invoiceShouldReturnTwentyItems() {
+    	when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+    	when(factory.create(any())).thenReturn(new Invoice(Id.generate(), null));
+    	
+    	for(int i = 0; i < 20; i++) {
+    		request.add(item);
+    	}
+    	
+    	Invoice invoice = keeper.issuance(request, taxPolicy);
+    	assertEquals(invoice.getItems().size(), 20);
+    }
 }
