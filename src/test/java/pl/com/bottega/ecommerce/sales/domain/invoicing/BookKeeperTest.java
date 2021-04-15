@@ -70,4 +70,21 @@ class BookKeeperTest {
     	verify(taxPolicy, times(2)).calculateTax(any(), any());
     }
 
+    @Test
+    void invoiceShouldReturnZeroItems() {
+    	when(factory.create(any())).thenReturn(new Invoice(Id.generate(), null));
+    	
+    	Invoice invoice = keeper.issuance(request, taxPolicy);
+    	assertEquals(invoice.getItems().size(), 0);
+    }
+    
+    @Test
+    void getNetShouldReturnZeroForInvoiceWithZeroItems() {
+    	when(factory.create(any())).thenReturn(new Invoice(Id.generate(), null));
+    	
+    	Invoice invoice = keeper.issuance(request, taxPolicy);
+    	assertEquals(invoice.getNet(), Money.ZERO);
+    }
+    
+
 }
