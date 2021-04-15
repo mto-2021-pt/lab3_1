@@ -16,6 +16,8 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +46,7 @@ class BookKeeperTest {
     }
 
     @Test
-    void testingInvoiceWithOneItem() {
+    void invoiceShouldReturnOneItem() {
     	
     	when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
     	when(factory.create(any())).thenReturn(new Invoice(Id.generate(), null));
@@ -53,6 +55,19 @@ class BookKeeperTest {
     	
     	Invoice invoice = keeper.issuance(request, taxPolicy);
     	assertEquals(invoice.getItems().size(), 1);
+    }
+    
+    @Test
+    void calculateTaxForInvoiceWithTwoItemsShouldBeCalledTwoTimes() {
+    	
+    	when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+    	when(factory.create(any())).thenReturn(new Invoice(Id.generate(), null));
+    
+    	request.add(item);    	
+    	request.add(item);
+    
+    	Invoice invoice = keeper.issuance(request, taxPolicy);
+    	verify(taxPolicy, times(2)).calculateTax(any(), any());
     }
 
 }
